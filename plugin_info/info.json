@@ -1,7 +1,7 @@
 {
-	"id" : "template",
-	"name" : "Template",
-	"description" : "Plugin template pour la création de plugin",
+	"id" : "asusrouter",
+	"name" : "Routeur Asus",
+	"description" : "Plugin permettant la communication avec les routeurs Asus",
 	"licence" : "AGPL",
 	"author" : "Jeedom SAS",
 	"require" : "3.2",
@@ -9,8 +9,8 @@
 	"hasDependency" : false,
 	"hasOwnDeamon" : false,
 	"maxDependancyInstallTime" : 0,
-	"changelog" : "https://jeedom.github.io/plugin-template/#language#/changelog",
-	"documentation" : "https://jeedom.github.io/plugin-template/#language#/",
+	"changelog" : "https://famille-ozaer.github.io/asusrouter/#language#/changelog",
+	"documentation" : "https://famille-ozaer.github.io/asusrouter/#language#/",
 	"link" : {
 		"forum":"Lien vers le forum",
 		"video" : "Lien vers une video"
