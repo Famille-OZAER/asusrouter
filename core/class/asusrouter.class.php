@@ -18,59 +18,14 @@
 
 /* * ***************************Includes********************************* */
 require_once __DIR__  . '/../../../../core/php/core.inc.php';
+require_once __DIR__  . '/../../3rdparty/TelnetClient.php';
 
 class asusrouter extends eqLogic {
-    /*     * *************************Attributs****************************** */
-    
-  /*
-   * Permet de définir les possibilités de personnalisation du widget (en cas d'utilisation de la fonction 'toHtml' par exemple)
-   * Tableau multidimensionnel - exemple: array('custom' => true, 'custom::layout' => false)
-	public static $_widgetPossibility = array();
-   */
-    
-    /*     * ***********************Methode static*************************** */
+  public static function cron() {
+   
+   }
+   
 
-    /*
-     * Fonction exécutée automatiquement toutes les minutes par Jeedom
-      public static function cron() {
-      }
-     */
-
-    /*
-     * Fonction exécutée automatiquement toutes les 5 minutes par Jeedom
-      public static function cron5() {
-      }
-     */
-
-    /*
-     * Fonction exécutée automatiquement toutes les 10 minutes par Jeedom
-      public static function cron10() {
-      }
-     */
-    
-    /*
-     * Fonction exécutée automatiquement toutes les 15 minutes par Jeedom
-      public static function cron15() {
-      }
-     */
-    
-    /*
-     * Fonction exécutée automatiquement toutes les 30 minutes par Jeedom
-      public static function cron30() {
-      }
-     */
-    
-    /*
-     * Fonction exécutée automatiquement toutes les heures par Jeedom
-      public static function cronHourly() {
-      }
-     */
-
-    /*
-     * Fonction exécutée automatiquement tous les jours par Jeedom
-      public static function cronDaily() {
-      }
-     */
 
 
 
@@ -93,9 +48,53 @@ class asusrouter extends eqLogic {
 
  // Fonction exécutée automatiquement après la mise à jour de l'équipement 
     public function postUpdate() {
-        
-    }
+      log::add('asusrouter', 'debug', '============ Début postUpdate ==========');
+      $defaultActions=array("refresh" => "Rafraichir");
+      $defaultMessageActions=array("sendsms" => "Envoyer un sms");
+      $defaultBinariesInfos=array();
+      $defaultNumericInfos=array();
+      $defaultOtherInfos=array("lastsms" => "Dernier sms reçu");
+                        
+      foreach ($defaultActions as $key => $value) {
+         $this->createCmd($value, $key, 'action', 'other');
+      }
+                     
+      foreach ($defaultMessageActions as $key => $value) {
+         $this->createCmd($value, $key, 'action', 'message');
+      }
 
+      foreach ($defaultBinariesInfos as $key => $value) {
+         $this->createCmd($value, $key, 'info', 'binary');
+      }
+      foreach ($defaultNumericInfos as $key => $value) {
+         $this->createCmd($value, $key, 'info', 'numeric');
+      }
+      foreach ($defaultOtherInfos as $key => $value) {
+         $this->createCmd($value, $key, 'info', 'string');
+      }
+    }
+    public function createCmd($cmdName, $logicalID, $type, $subType)
+    {
+       $getDataCmd = $this->getCmd(null, $logicalID);
+       if (!is_object($getDataCmd))
+       {
+          // Création de la commande
+          $cmd = new asusrouterCmd();
+          // Nom affiché
+          $cmd->setName($cmdName);
+          // Identifiant de la commande
+          $cmd->setLogicalId($logicalID);
+          // Identifiant de l'équipement
+          $cmd->setEqLogic_id($this->getId());
+          // Type de la commande
+          $cmd->setType($type);
+          $cmd->setSubType($subType);
+          // Visibilité de la commande
+          $cmd->setIsVisible(1);
+          // Sauvegarde de la commande
+          $cmd->save();
+       }
+    }
  // Fonction exécutée automatiquement avant la sauvegarde (création ou mise à jour) de l'équipement 
     public function preSave() {
         
@@ -116,53 +115,64 @@ class asusrouter extends eqLogic {
         
     }
 
-    /*
-     * Non obligatoire : permet de modifier l'affichage du widget (également utilisable par les commandes)
-      public function toHtml($_version = 'dashboard') {
-
-      }
-     */
-
-    /*
-     * Non obligatoire : permet de déclencher une action après modification de variable de configuration
-    public static function postConfig_<Variable>() {
-    }
-     */
-
-    /*
-     * Non obligatoire : permet de déclencher une action avant modification de variable de configuration
-    public static function preConfig_<Variable>() {
-    }
-     */
-
     /*     * **********************Getteur Setteur*************************** */
 }
 
 class asusrouterCmd extends cmd {
-    /*     * *************************Attributs****************************** */
-    
-    /*
-      public static $_widgetPossibility = array();
-    */
-    
-    /*     * ***********************Methode static*************************** */
-
-
-    /*     * *********************Methode d'instance************************* */
-
-    /*
-     * Non obligatoire permet de demander de ne pas supprimer les commandes même si elles ne sont pas dans la nouvelle configuration de l'équipement envoyé en JS
-      public function dontRemoveCmd() {
-      return true;
-      }
-     */
-
   // Exécution d'une commande  
-     public function execute($_options = array()) {
-        
-     }
+   public function execute($_options = array()) {
+      log::add('asusrouter', 'debug', '============ Début execute ==========');
+      if ($this->getType() != 'action') {
+         return;
+      }
+      
+      log::add('asusrouter', 'debug', 'Fonction execute démarrée');
+      log::add('asusrouter', 'debug', 'EqLogic_Id : '.$this->getEqlogic_id());
+      log::add('asusrouter', 'debug', 'Name : '.$this->getName());
 
-    /*     * **********************Getteur Setteur*************************** */
+      $asusrouterObj = asusrouter::byId($this->getEqlogic_id());
+      $user=$asusrouterObj->getConfiguration('username');
+      $ipaddress=$asusrouterObj->getConfiguration('ipaddress');
+      $password=$asusrouterObj->getConfiguration('password');
+      
+      log::add('asusrouter', 'debug', 'user : '.$user);       
+      log::add('asusrouter', 'debug', 'ipaddress : '.$ipaddress);         
+
+      $TelnetClient = new TelnetClient($ipaddress);
+      $TelnetClient->login($user, $password);
+      $TelnetClient->setDefaultOptions();
+
+      switch (strtoupper($this->getLogicalId()))
+      {
+         case "REFRESH":
+            $this->RefreshInfos($TelnetClient);
+            break;
+         case "SENDSMS":
+            log::add('asusrouter', 'debug', "SENDMESSAGE");
+            $this->sendSms($_options['title'],$_options['message']);
+            break;         
+      }
+      $TelnetClient->exec("exit");
+      $TelnetClient->disconnect();
+      log::add('asusrouter', 'debug', '============ Fin execute ==========');
+   }
+   private function sendSms($TelnetClient, $dest, $message)
+   {
+
+      /*echo "send message"
+      /usr/sbin/modem_at.sh +CMGS=\"+33625671451\"\\rTestMessage\^Z
+      echo "send message with spaces"
+      /usr/sbin/modem_at.sh +CMGS=\"+33625671451\"\\rTest\ Message\\nLine\ 2\^Z*/
+      $message=str_replace(" ", "\ ", $message);
+      $TelnetClient->exec('/usr/sbin/modem_at.sh +CMGS=\"'.$dest.'\"\\r'.$message.'\^Z');
+
+   }
+   private function RefreshInfos($TelnetClient)
+   {
+      /*echo "Read unread messages"
+      /usr/sbin/modem_at.sh +CMGL=\"REC\ UNREAD\"*/
+      $TelnetClient->exec('/usr/sbin/modem_at.sh +CMGL=\"REC\ UNREAD\"');
+   }
 }
 
 
