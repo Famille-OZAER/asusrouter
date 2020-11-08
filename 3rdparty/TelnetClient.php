@@ -157,7 +157,7 @@ class TelnetClient {
 	 * @param string $username Username
 	 * @param string $password Password
 	 * @return boolean
-	 */dvdswvcw
+	 */
 	public function login($username, $password) {
 		try {
 			$this->setPrompt('login:');
